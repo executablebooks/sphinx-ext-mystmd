@@ -1,0 +1,37 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "sphinx-ext-mystmd"
+dynamic = ["version"]
+description = 'A Sphinx extension to build MyST-MD AST from a Sphinx project'
+readme = "README.md"
+requires-python = ">=3.8"
+license = "MIT"
+keywords = []
+authors = [
+  { name = "Angus Hollands", email = "goosey15@gmail.com" },
+]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: Implementation :: CPython",
+  "Programming Language :: Python :: Implementation :: PyPy",
+]
+dependencies = []
+
+[project.urls]
+Documentation = "https://github.com/executablebooks/sphinx-ext-mystmd#readme"
+Issues = "https://github.com/executablebooks/sphinx-ext-mystmd/issues"
+Source = "https://github.com/executablebooks/sphinx-ext-mystmd"
+
+[tool.hatch.version]
+path = "src/sphinx_ext_mystmd/__about__.py"
+
+
