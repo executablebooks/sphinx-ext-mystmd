@@ -45,7 +45,6 @@ class MySTBuilder(Builder):
             return
 
         yield from it
-        yield os.path.join(self.outdir, "myst.xref.json")
 
     def prepare_writing(self, docnames):
         print(f"About to write {docnames}")
@@ -56,8 +55,10 @@ class MySTBuilder(Builder):
         visitor = MySTNodeVisitor(doctree)
         doctree.walkabout(visitor)
 
-        dst = pathlib.Path(path)
-        dst.parent.mkdir(exist_ok=True)
+        json_dst = pathlib.Path(path)
+        json_dst.parent.mkdir(exist_ok=True)
+
+        md_dst = json_dst.with_suffix(".md")
 
         with open(self.env.doc2path(docname), "rb") as f:
             sha256 = hashlib.sha256(f.read()).hexdigest()
@@ -73,8 +74,14 @@ class MySTBuilder(Builder):
             "references": {"cite": {"order": [], "data": {}}},
         }
 
-        with open(dst, "w") as f:
+        with open(json_dst, "w") as f:
             json.dump(mdast, f, indent=2)
+
+        with open(md_dst, "w") as f:
+            f.write(f"""
+:::{{mdast}} {json_dst.name}#mdast
+
+""")
 
     # xref impl is done at build time ... we need to embed and then use non-xref links to refer to _that_ AST
 
