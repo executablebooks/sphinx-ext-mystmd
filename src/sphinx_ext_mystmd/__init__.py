@@ -74,7 +74,7 @@ class MySTBuilder(Builder):
         }
 
         with open(dst, "w") as f:
-            json.dump(mdast, f)
+            json.dump(mdast, f, indent=2)
 
     # xref impl is done at build time ... we need to embed and then use non-xref links to refer to _that_ AST
 
@@ -85,7 +85,7 @@ class MySTBuilder(Builder):
         ]
         xref = {"version": "1", "myst": "1.2.9", "references": references}
         with open(os.path.join(self.outdir, "myst.xref.json"), "w") as f:
-            json.dump(xref, f)
+            json.dump(xref, f, indent=2)
 
     def get_target_uri(self, docname, typ=None):
         return self.slugify(docname)

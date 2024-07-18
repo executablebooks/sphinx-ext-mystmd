@@ -1,6 +1,9 @@
 # sphinx-ext-mystmd
 
-A Sphinx extension to build MyST-MD AST from a Sphinx project.
+A Sphinx extension to build MyST-MD AST from a Sphinx project. This can be used for:
+
+1. Embedding API documentation in a MyST project
+2. Providing MyST xref support for a deployed Sphinx project (gradual transition)
 
 Add this extension to your `conf.py` e.g.
 ```python
