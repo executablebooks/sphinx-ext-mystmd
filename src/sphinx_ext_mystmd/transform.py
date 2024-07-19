@@ -134,6 +134,8 @@ class MySTNodeVisitor(Visitor):
         else:
             raise
 
+    visit_number_reference = visit_reference
+
     def visit_topic(self, node):
         return self.enter_myst_node({"type": "admonition", "children": []}, node)
 
