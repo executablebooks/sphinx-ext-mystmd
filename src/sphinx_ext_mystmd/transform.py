@@ -114,6 +114,11 @@ class MySTNodeVisitor(Visitor):
         ):
             yield SkipChildren
 
+    def visit_raw(self, node):
+        return self.enter_myst_node(
+            {"type": "paragraph", "children": [{"type": "text", "value": str(node)}]}
+        )
+
     def visit_compact_paragraph(self, node):
         return self.enter_myst_node({"type": "paragraph", "children": []}, node)
 
