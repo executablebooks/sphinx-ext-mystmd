@@ -78,13 +78,12 @@ class MySTNodeVisitor(Visitor):
         return self._result
 
     def inherit_node_info(self, node, docutils_node):
-
         ids = docutils_node.get("ids", [])
         if ids:
             if len(ids) > 1:
-                print("Warning, found multiple ids:", ids)
+                print(f"Warning, found multiple ids: {ids}, using {ids[-1]}")
 
-            identifier, label, _ = normalize_label(ids[0])
+            identifier, label, _ = normalize_label(ids[-1])
             node["identifier"] = identifier
             node["label"] = label
 
