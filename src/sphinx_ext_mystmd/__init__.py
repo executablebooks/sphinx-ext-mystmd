@@ -13,7 +13,7 @@ class MySTBuilder(Builder):
     def slugify(self, path):
         return path.replace("/", "-")
 
-    def _get_target_path(self, doc_name):
+    def _get_xref_path(self, doc_name):
         target_stem = self.slugify(doc_name)
         return os.path.join(self.outdir, f"{target_stem}.json")
 
@@ -22,7 +22,7 @@ class MySTBuilder(Builder):
             if docname not in self.env.all_docs:
                 yield docname
                 continue
-            target_path = self._get_target_path(docname)
+            target_path = self._get_xref_path(docname)
             try:
                 targetmtime = os.path.getmtime(target_path)
             except Exception:
@@ -50,38 +50,50 @@ class MySTBuilder(Builder):
         print(f"About to write {docnames}")
 
     def write_doc(self, docname, doctree):
-        slug = self.slugify(docname)
-        path = self._get_target_path(docname)
         visitor = MySTNodeVisitor(doctree)
         doctree.walkabout(visitor)
 
-        json_dst = pathlib.Path(path)
-        json_dst.parent.mkdir(exist_ok=True)
+        slug = self.slugify(docname)
+        xref_path = self._get_xref_path(docname)
 
-        md_dst = json_dst.with_suffix(".md")
+        json_xref_dst = pathlib.Path(xref_path)
+        json_xref_dst.parent.mkdir(exist_ok=True)
+
+        md_frag_dst = json_xref_dst.with_suffix(".md")
+        json_frag_dst = json_xref_dst.with_suffix(".frag.json")
 
         with open(self.env.doc2path(docname), "rb") as f:
             sha256 = hashlib.sha256(f.read()).hexdigest()
 
-        mdast = {
-            "kind": "Article",
-            "sha256": sha256,
-            "slug": slug,
-            "location": f"/{docname}",
-            "dependencies": [],
-            "frontmatter": {},
-            "mdast": visitor.result,
-            "references": {"cite": {"order": [], "data": {}}},
-        }
+        with open(json_xref_dst, "w") as f:
+            json.dump(
+                {
+                    "kind": "Article",
+                    "sha256": sha256,
+                    "slug": slug,
+                    "location": f"/{docname}",
+                    "dependencies": [],
+                    "frontmatter": {},
+                    "mdast": visitor.result,
+                    "references": {"cite": {"order": [], "data": {}}},
+                },
+                f,
+                indent=2,
+            )
 
-        with open(json_dst, "w") as f:
-            json.dump(mdast, f, indent=2)
+        with open(json_frag_dst, "w") as f:
+            assert visitor.result["type"] == "root"
+            first_root_child = visitor.result["children"][0]
+            fragment = {"mdast": first_root_child}
+            json.dump(fragment, f, indent=2)
 
-        with open(md_dst, "w") as f:
-            f.write(f"""
-:::{{mdast}} {json_dst.name}#mdast
+        with open(md_frag_dst, "w") as f:
+            f.write(
+                f"""
+:::{{mdast}} {json_frag_dst.name}#mdast
 
-""")
+"""
+            )
 
     # xref impl is done at build time ... we need to embed and then use non-xref links to refer to _that_ AST
 
