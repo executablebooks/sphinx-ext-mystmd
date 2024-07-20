@@ -8,16 +8,15 @@ from .transform import MySTNodeVisitor
 
 
 def to_text(node):
-    if node['type'] == "text":
+    if "value" in node:
         return node['value']
-    elif hasattr(node, "children"):
+    elif "children" in node:
         return "".join([to_text(n) for n in node['children']])
     else:
         return ""
 
 
 def find_by_type(type_, node):
-    print(type_, node)
     for child in node["children"]:
         if child["type"] == type_:
             yield child
@@ -67,9 +66,7 @@ class MySTBuilder(Builder):
 
         with open(self.env.doc2path(docname), "rb") as f:
             sha256 = hashlib.sha256(f.read()).hexdigest()
-        print(visitor.result)
         title = to_text(next(find_by_type("heading", visitor.result)))
-
         with open(json_xref_dst, "w") as f:
             json.dump(
                 {
