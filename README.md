@@ -12,8 +12,10 @@ extensions = ["sphinx_ext_mystmd"]
 in order to be able to use the `myst` builder, e.g.
 
 ```shell
-sphinx-build -b myst . _build/myst
+sphinx-build -b myst . <BUILDDIR>
 ```
+
+The generated `<FILE>.json` files in `<BUILDDIR>` can be added to your TOC e.g. using a `pattern` entry. You can also serve the `myst.xref.json` from your Sphinx deployment to enable MyST xrefs.
 
 > [!WARNING]
 > This extension is a literal work-in-progress; some things don't work.
