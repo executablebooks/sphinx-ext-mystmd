@@ -7,6 +7,23 @@ import hashlib
 from .transform import MySTNodeVisitor
 
 
+def to_text(node):
+    if node['type'] == "text":
+        return node['value']
+    elif hasattr(node, "children"):
+        return "".join([to_text(n) for n in node['children']])
+    else:
+        return ""
+
+
+def find_by_type(type_, node):
+    for child in node["children"]:
+        if child["type"] == type_:
+            yield child
+        elif "children" in node:
+            yield from find_by_type(type_, child)
+
+
 class MySTBuilder(Builder):
     name = "myst"
 
@@ -15,7 +32,7 @@ class MySTBuilder(Builder):
 
     def _get_xref_path(self, doc_name):
         target_stem = self.slugify(doc_name)
-        return os.path.join(self.outdir, f"{target_stem}.json")
+        return os.path.join(self.outdir, "content", f"{target_stem}.json")
 
     def _get_outdated_docs(self):
         for docname in self.env.found_docs:
@@ -52,18 +69,16 @@ class MySTBuilder(Builder):
     def write_doc(self, docname, doctree):
         visitor = MySTNodeVisitor(doctree)
         doctree.walkabout(visitor)
-
         slug = self.slugify(docname)
         xref_path = self._get_xref_path(docname)
 
         json_xref_dst = pathlib.Path(xref_path)
         json_xref_dst.parent.mkdir(exist_ok=True)
 
-        md_frag_dst = json_xref_dst.with_suffix(".md")
-        json_frag_dst = json_xref_dst.with_suffix(".frag.json")
-
         with open(self.env.doc2path(docname), "rb") as f:
             sha256 = hashlib.sha256(f.read()).hexdigest()
+
+        title = to_text(next(find_by_type("heading", visitor.result)))
 
         with open(json_xref_dst, "w") as f:
             json.dump(
@@ -73,7 +88,7 @@ class MySTBuilder(Builder):
                     "slug": slug,
                     "location": f"/{docname}",
                     "dependencies": [],
-                    "frontmatter": {},
+                    "frontmatter": {"title": title, "content_includes_title": True},
                     "mdast": visitor.result,
                     "references": {"cite": {"order": [], "data": {}}},
                 },
@@ -81,25 +96,11 @@ class MySTBuilder(Builder):
                 indent=2,
             )
 
-        with open(json_frag_dst, "w") as f:
-            assert visitor.result["type"] == "root"
-            first_root_child = visitor.result["children"][0]
-            fragment = {"mdast": first_root_child}
-            json.dump(fragment, f, indent=2)
-
-        with open(md_frag_dst, "w") as f:
-            f.write(
-                f"""
-:::{{mdast}} {json_frag_dst.name}#mdast
-
-"""
-            )
-
     # xref impl is done at build time ... we need to embed and then use non-xref links to refer to _that_ AST
 
     def finish(self):
         references = [
-            {"kind": "page", "url": f"/{slug}", "data": f"/{slug}.json"}
+            {"kind": "page", "url": f"/{slug}", "data": f"/content/{slug}.json"}
             for slug in (self.slugify(n) for n in self.env.found_docs)
         ]
         xref = {"version": "1", "myst": "1.2.9", "references": references}
