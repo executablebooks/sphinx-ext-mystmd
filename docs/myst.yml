@@ -1,0 +1,18 @@
+# See docs at: https://mystmd.org/guide/frontmatter
+version: 1
+project:
+  id: cb9569b0-cd07-4ba2-ab8b-15fed46d7425
+  # title:
+  # description:
+  # keywords: []
+  # authors: []
+  github: https://github.com/executablebooks/sphinx-ext-mystmd
+  # To autogenerate a Table of Contents, run "myst init --write-toc"
+  toc:
+    - file: index.md
+    - pattern: mdast/content/*.json
+site:
+  template: book-theme
+  # options:
+  #   favicon: favicon.ico
+  #   logo: site_logo.png

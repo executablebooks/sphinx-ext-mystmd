@@ -2,9 +2,13 @@ import contextlib
 from docutils.nodes import NodeVisitor, SkipChildren, SkipSiblings
 from weakref import WeakKeyDictionary
 import inspect
+from sphinx.util import logging
 
 
 from .utils import normalize_label
+
+
+logger = logging.getLogger(__name__)
 
 
 def is_context_manager(obj):
@@ -106,7 +110,8 @@ class MySTNodeVisitor(Visitor):
         finally:
             self._result_stack.pop()
 
-    def visit_meta(self, node): ...  # TODO: parse this?
+    def visit_meta(self, node):
+        logger.warning("`meta` node not implemented")
 
     def visit_comment(self, node):
         with self.enter_myst_node(
@@ -150,9 +155,7 @@ class MySTNodeVisitor(Visitor):
         )
 
     def visit_target(self, node):
-        # self.next_sibling_id = node["refid"]
-        # TODO
-        ...
+        logger.warning("`target` node not implemented")
 
     @contextlib.contextmanager
     def enter_heading(self):
@@ -186,6 +189,7 @@ class MySTNodeVisitor(Visitor):
         )
 
     def visit_substition_definition(self, node):
+        logger.warning("`substitution_definition` node not implemented")
         return SkipChildren
 
     def visit_subtitle(self, node):
@@ -242,7 +246,8 @@ class MySTNodeVisitor(Visitor):
         )  # TODO: fix url
 
     def visit_index(self, node):
-        return
+        logger.warning("`index` node not implemented")
+        return SkipChildren
 
     def visit_title_reference(self, node):
         return self.enter_myst_node(  # TODO fix url
@@ -277,7 +282,8 @@ class MySTNodeVisitor(Visitor):
         self._result = result
 
     def visit_generated(self, node):
-        return
+        logger.warning("`generated` node not implemented")
+        return SkipChildren
 
     def visit_field_list(self, node):
         return self.enter_myst_node({"type": "fieldList", "children": []}, node)
@@ -292,6 +298,7 @@ class MySTNodeVisitor(Visitor):
         return self.enter_myst_node({"type": "fieldDescription", "children": []}, node)
 
     def visit_classifier(self, node):
+        logger.warning("`classifier` node not implemented")
         return SkipChildren
 
     def visit_definition_list(self, node):
@@ -309,20 +316,27 @@ class MySTNodeVisitor(Visitor):
         return
 
     def visit_option_list(self, node):
+        logger.warning("`option_list` node not implemented")
         return SkipChildren
 
     def visit_line_block(self, node):
+        logger.warning("`line_block` node not implemented")
         return SkipChildren
 
     def visit_doctest_block(self, node):
+        logger.warning("`doctest_block` node not implemented")
         return SkipChildren
 
     def visit_table(self, node):
         return self.enter_myst_node({"type": "table", "children": []}, node)
 
-    def visit_tgroup(self, node): ...
+    def visit_tgroup(self, node):
+        logger.warning("`tgroup node not implemented")
+        return SkipChildren
 
-    def visit_tbody(self, node): ...
+    def visit_tbody(self, node):
+        logger.warning("`tbody node not implemented")
+        return SkipChildren
 
     def visit_row(self, node):
         return self.enter_myst_node({"type": "tableRow", "children": []}, node)
@@ -336,12 +350,18 @@ class MySTNodeVisitor(Visitor):
         )
 
     def visit_label(self, node):
+
+        logger.warning("`label` node not implemented")
         return SkipChildren
 
     def visit_citation(self, node):
+
+        logger.warning("`citation` node not implemented")
         return SkipChildren
 
     def visit_legend(self, node):
+
+        logger.warning("`legend` node not implemented")
         return SkipChildren
 
     def visit_caption(self, node):
@@ -368,10 +388,14 @@ class MySTNodeVisitor(Visitor):
             for row_child in child["children"]:
                 row_child["header"] = True
 
-    def visit_colspec(self, node): ...
+    def visit_colspec(self, node):
+        logger.warning("`colspec` node not implemented")
+        return SkipChildren
 
     def visit_literal_block(self, node):
-        return  # skip literal part!
+
+        logger.warning("`literal_block` node not implemented")
+        return SkipChildren
 
     def visit_block_quote(self, node):
         return self.enter_myst_node({"type": "blockquote", "children": []}, node)
@@ -384,6 +408,8 @@ class MySTNodeVisitor(Visitor):
 
     def visit_substitution_definition(self, node):
         # TODO: cache this?
+
+        logger.warning("`substitution_definition` node not implemented")
         return SkipChildren
 
     def visit_compound(self, node):

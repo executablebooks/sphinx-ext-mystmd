@@ -17,10 +17,11 @@ def to_text(node):
 
 
 def find_by_type(type_, node):
+    print(type_, node)
     for child in node["children"]:
         if child["type"] == type_:
             yield child
-        elif "children" in node:
+        elif "children" in child:
             yield from find_by_type(type_, child)
 
 
@@ -34,7 +35,10 @@ class MySTBuilder(Builder):
         target_stem = self.slugify(doc_name)
         return os.path.join(self.outdir, "content", f"{target_stem}.json")
 
-    def _get_outdated_docs(self):
+    def prepare_writing(self, docnames):
+        print(f"About to write {docnames}")
+
+    def get_outdated_docs(self):
         for docname in self.env.found_docs:
             if docname not in self.env.all_docs:
                 yield docname
@@ -52,20 +56,6 @@ class MySTBuilder(Builder):
                 # source doesn't exist anymore
                 pass
 
-    def get_outdated_docs(self):
-        it = self._get_outdated_docs()
-
-        for item in it:
-            yield item
-            break
-        else:
-            return
-
-        yield from it
-
-    def prepare_writing(self, docnames):
-        print(f"About to write {docnames}")
-
     def write_doc(self, docname, doctree):
         visitor = MySTNodeVisitor(doctree)
         doctree.walkabout(visitor)
@@ -77,7 +67,7 @@ class MySTBuilder(Builder):
 
         with open(self.env.doc2path(docname), "rb") as f:
             sha256 = hashlib.sha256(f.read()).hexdigest()
-
+        print(visitor.result)
         title = to_text(next(find_by_type("heading", visitor.result)))
 
         with open(json_xref_dst, "w") as f:
@@ -95,8 +85,6 @@ class MySTBuilder(Builder):
                 f,
                 indent=2,
             )
-
-    # xref impl is done at build time ... we need to embed and then use non-xref links to refer to _that_ AST
 
     def finish(self):
         references = [
