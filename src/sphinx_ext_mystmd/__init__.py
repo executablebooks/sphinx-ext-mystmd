@@ -32,7 +32,7 @@ class MySTBuilder(Builder):
 
     def _get_xref_path(self, doc_name):
         target_stem = self.slugify(doc_name)
-        return os.path.join(self.outdir, "content", f"{target_stem}.json")
+        return os.path.join(self.outdir, "content", f"{target_stem}.myst.json")
 
     def prepare_writing(self, docnames):
         print(f"About to write {docnames}")
