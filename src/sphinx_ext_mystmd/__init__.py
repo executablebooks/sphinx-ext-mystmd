@@ -85,7 +85,7 @@ class MySTBuilder(Builder):
 
     def finish(self):
         references = [
-            {"kind": "page", "url": f"/{slug}", "data": f"/content/{slug}.json"}
+            {"kind": "page", "url": f"/{slug}", "data": f"/content/{slug}.myst.json"}
             for slug in (self.slugify(n) for n in self.env.found_docs)
         ]
         xref = {"version": "1", "myst": "1.2.9", "references": references}
