@@ -1,4 +1,5 @@
 import re
+import collections
 
 
 def normalize_label(
@@ -31,3 +32,37 @@ def create_html_id(identifier):
             ),
         ),
     )
+
+
+def to_text(node):
+    if "value" in node:
+        return node["value"]
+    elif "children" in node:
+        return "".join([to_text(n) for n in node["children"]])
+    else:
+        return ""
+
+
+def depth_first_walk(node):
+    queue = [node]
+    while queue:
+        this = queue.pop()
+        if "children" in this:
+            queue.extend(this['children'])
+        yield this
+
+
+def breadth_first_walk(node):
+    queue = collections.deque([node])
+    while queue:
+        this = queue.popleft()
+        if "children" in this:
+            queue.extend(this['children'])
+        yield this
+
+
+
+def find_by_type(type_, node):
+    for node in breadth_first_walk(node):
+        if node["type"] == type_:
+            yield node

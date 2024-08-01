@@ -231,7 +231,6 @@ class MySTNodeVisitor(Visitor):
         self.push_myst_node({"type": "html", "value": "</sup>"})
 
     def visit_literal(self, node):
-        print("LITERAL", repr(node))
         return self.enter_myst_node({"type": "inlineCode", "children": []}, node)
 
     def visit_literal_emphasis(self, node):
