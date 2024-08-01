@@ -9,7 +9,7 @@ description: Gradually upgrade Sphinx projects to the MyST engine through the My
 
 The Sphinx `conf.py` for your project should include `sphinx-ext-mystmd`. If your Sphinx project lives under `sphinx`, then your `conf.py` might look like.
 :::{code} python
-:filename: conf.py
+:filename: sphinx/conf.py
 
 extensions = [
     "sphinx_ext_mystmd"
