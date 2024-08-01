@@ -203,7 +203,10 @@ class MySTNodeVisitor(Visitor):
         return self.enter_myst_node({"type": "list", "children": []}, node)
 
     def visit_rubric(self, node):
-        return self.enter_myst_node({"type": "blockQuote", "children": []}, node)
+        with self.enter_myst_node({"type": "paragraph", "children": []}, node):
+            with self.enter_myst_node({"type": "strong", "children": []}):
+              self.push_myst_node({"type": "text", "value": str(node.children[0])})
+              yield SkipChildren
 
     def visit_transition(self, node):
         return self.enter_myst_node({"type": "thematicBreak"})
@@ -228,6 +231,7 @@ class MySTNodeVisitor(Visitor):
         self.push_myst_node({"type": "html", "value": "</sup>"})
 
     def visit_literal(self, node):
+        print("LITERAL", repr(node))
         return self.enter_myst_node({"type": "inlineCode", "children": []}, node)
 
     def visit_literal_emphasis(self, node):
@@ -284,18 +288,6 @@ class MySTNodeVisitor(Visitor):
     def visit_generated(self, node):
         logger.warning("`generated` node not implemented")
         return SkipChildren
-
-    def visit_field_list(self, node):
-        return self.enter_myst_node({"type": "fieldList", "children": []}, node)
-
-    def visit_field(self, node):
-        return self.enter_myst_node({"type": "fieldListItem", "children": []}, node)
-
-    def visit_field_name(self, node):
-        return self.enter_myst_node({"type": "fieldName", "children": []}, node)
-
-    def visit_field_body(self, node):
-        return self.enter_myst_node({"type": "fieldDescription", "children": []}, node)
 
     def visit_classifier(self, node):
         logger.warning("`classifier` node not implemented")
@@ -392,9 +384,12 @@ class MySTNodeVisitor(Visitor):
         logger.warning("`colspec` node not implemented")
         return SkipChildren
 
-    def visit_literal_block(self, node):
+    def visit_tabular_col_spec(self, node):
+        logger.warning("`tabular_colspec` node not implemented")
+        return SkipChildren
 
-        logger.warning("`literal_block` node not implemented")
+    def visit_literal_block(self, node):
+        self.push_myst_node({"type": "code", "value": str(node.children[0])}, node)
         return SkipChildren
 
     def visit_block_quote(self, node):
@@ -417,92 +412,136 @@ class MySTNodeVisitor(Visitor):
             {"type": "div", "children": []}, node
         )  # TODO: proper container?
 
-    def visit_desc(self, node):
-        return self.enter_myst_node({"type": "desc", "children": []}, node)
-
-    def visit_desc_addname(self, node):
-        return self.enter_myst_node({"type": "descAddname", "children": []}, node)
-
-    def visit_desc_annotation(self, node):
-        return self.enter_myst_node({"type": "descAnnotation", "children": []}, node)
-
-    def visit_desc_classes_injector(self, node):
+    def visit_field_list(self, node):
         return self.enter_myst_node(
-            {"type": "descClassesInjector", "children": []}, node
+            {
+                "type": "definitionList",
+                "children": [],
+                # "class": "sphinx-field-list"
+            },
+            node,
+        )
+
+    def visit_field_name(self, node):
+        return self.enter_myst_node(
+            {
+                "type": "definitionTerm",
+                "children": [],
+                # "class": "sphinx-field-name"
+            },
+            node,
+        )
+
+    def visit_field_body(self, node):
+        return self.enter_myst_node(
+            {
+                "type": "definitionDescription",
+                "children": [],
+                # "class": "sphinx-field-body",
+            },
+            node,
+        )
+
+    def visit_desc(self, node):
+        return self.enter_myst_node(
+            {
+                "type": "definitionList",
+                "children": [],  # "class": "sphinx-desc"
+            },
+            node,
         )
 
     def visit_desc_content(self, node):
-        return self.enter_myst_node({"type": "descContent", "children": []}, node)
-
-    def visit_desc_inline(self, node):
-        return self.enter_myst_node({"type": "descInline", "children": []}, node)
-
-    def visit_desc_name(self, node):
-        return self.enter_myst_node({"type": "descName", "children": []}, node)
-
-    def visit_desc_optional(self, node):
-        return self.enter_myst_node({"type": "descOptional", "children": []}, node)
-
-    def visit_desc_parameter(self, node):
-        return self.enter_myst_node({"type": "descParameter", "children": []}, node)
-
-    def visit_desc_parameterlist(self, node):
-        return self.enter_myst_node({"type": "descParameterlist", "children": []}, node)
-
-    def visit_desc_returns(self, node):
-        return self.enter_myst_node({"type": "descReturns", "children": []}, node)
-
-    def visit_desc_sig_element(self, node):
-        return self.enter_myst_node({"type": "descSigElement", "children": []}, node)
-
-    def visit_desc_sig_keyword(self, node):
-        return self.enter_myst_node({"type": "descSigKeyword", "children": []}, node)
-
-    def visit_desc_sig_keyword_type(self, node):
         return self.enter_myst_node(
-            {"type": "descSigKeywordType", "children": []}, node
+            {
+                "type": "definitionDescription",
+                "children": [],
+                # "class": "sphinx-desc-content",
+            },
+            node,
         )
-
-    def visit_desc_sig_literal_char(self, node):
-        return self.enter_myst_node(
-            {"type": "descSigLiteralChar", "children": []}, node
-        )
-
-    def visit_desc_sig_literal_number(self, node):
-        return self.enter_myst_node(
-            {"type": "descSigLiteralNumber", "children": []}, node
-        )
-
-    def visit_desc_sig_literal_string(self, node):
-        return self.enter_myst_node(
-            {"type": "descSigLiteralString", "children": []}, node
-        )
-
-    def visit_desc_sig_name(self, node):
-        return self.enter_myst_node({"type": "descSigName", "children": []}, node)
 
     def visit_desc_signature(self, node):
-        return self.enter_myst_node({"type": "descSignature", "children": []}, node)
-
-    def visit_desc_signature_line(self, node):
-        return self.enter_myst_node({"type": "descSignatureLine", "children": []}, node)
-
-    def visit_desc_sig_operator(self, node):
-        return self.enter_myst_node({"type": "descSigOperator", "children": []}, node)
-
-    def visit_desc_sig_punctuation(self, node):
         return self.enter_myst_node(
-            {"type": "descSigPunctuation", "children": []}, node
+            {
+                "type": "definitionTerm",
+                "children": [],
+                # "class": "sphinx-desc-signature",
+            },
+            node,
         )
 
-    def visit_desc_sig_space(self, node):
-        return self.enter_myst_node({"type": "descSigSpace", "children": []}, node)
+    def visit_desc_parameterlist(self, node):
+        with self.enter_myst_node(
+            {"type": "span", "children": [], "class": "sphinx-desc-parameterlist"}, node
+        ) as parent:
+            yield
+            if parent["children"]:
+                *leading, last = parent["children"]
+                parent["children"] = [
+                    {"type": "text", "value": "("},
+                    *[
+                        x
+                        for p in [(n, {"type": "text", "value": ", "}) for n in leading]
+                        for x in p
+                    ],
+                    last,
+                    {"type": "text", "value": ")"},
+                ]
+            else:
+                parent["children"] = [
+                    {"type": "text", "value": "("},
+                    {"type": "text", "value": ")"},
+                ]
 
-    def visit_desc_type(self, node):
-        return self.enter_myst_node({"type": "descType", "children": []}, node)
+    def visit_desc_parameter(self, node):
+        return self.enter_myst_node(
+            {
+                "type": "emphasis",
+                "children": [],
+                #                "class": "sphinx-desc-parameter",
+            },
+            node,
+        )
 
-    def visit_desc_type_parameter(self, node):
-        return self.enter_myst_node({"type": "descTypeParameter", "children": []}, node)
+
+    def visit_desc_annotation(self, node):
+        return self.enter_myst_node(
+            {"type": "emphasis", "children": [], "class": "sphinx-desc-annotation"},
+            node,
+        )
+
+    def visit_field(self, node):
+        return  # Render children
+
+    def _visit_span(self, node):
+        name = type(node).__name__
+        escaped_name = name.replace("_", "-")
+        return self.enter_myst_node(
+            {"type": "span", "children": [], "class": f"sphinx-{escaped_name}"}, node
+        )
+
+    for name in (
+        "desc_addname",
+        "desc_inline",
+        "desc_name",
+        "desc_returns",
+        "desc_optional",
+        "desc_sig_element",
+        "desc_sig_keyword",
+        "desc_sig_keyword_type",
+        "desc_sig_literal_char",
+        "desc_sig_literal_number",
+        "desc_sig_literal_string",
+        "desc_sig_name",
+        "desc_signature_line",
+        "desc_sig_operator",
+        "desc_sig_punctuation",
+        "desc_sig_space",
+        "desc_type",
+        "desc_type_parameter",
+    ):
+        locals()[f"visit_{name}"] = _visit_span
 
 
 for name in (
