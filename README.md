@@ -15,7 +15,19 @@ in order to be able to use the `myst` builder, e.g.
 sphinx-build -b myst . <BUILDDIR>
 ```
 
-The generated `.myst.json` files in `<BUILDDIR>/content` can be added to your TOC e.g. using a `pattern` entry. You can also serve the `myst.xref.json` from your Sphinx deployment to enable MyST xrefs.
+The generated `.myst.json` files in `<BUILDDIR>/content` can be added to your TOC e.g. using a `pattern` entry, e.g.
+
+```
+project:
+  toc:
+    - file: index.md
+    - title: Sphinx Build
+      children:
+        - pattern: <BUILDDIR>/content/**.myst.json
+
+```
+
+You can also serve the `myst.xref.json` from your Sphinx deployment to enable MyST xrefs.
 
 > [!WARNING]
 > This extension is a literal work-in-progress; some things don't work.
