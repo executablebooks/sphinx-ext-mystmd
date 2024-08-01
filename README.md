@@ -17,7 +17,7 @@ sphinx-build -b myst . <BUILDDIR>
 
 The generated `.myst.json` files in `<BUILDDIR>/content` can be added to your TOC e.g. using a `pattern` entry, e.g.
 
-```
+```yaml
 project:
   toc:
     - file: index.md
