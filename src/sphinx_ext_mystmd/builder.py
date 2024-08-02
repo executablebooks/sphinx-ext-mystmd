@@ -55,7 +55,13 @@ class MySTBuilder(Builder):
 
         with open(self.env.doc2path(docname), "rb") as f:
             sha256 = hashlib.sha256(f.read()).hexdigest()
-        title = to_text(next(find_by_type("heading", visitor.result)))
+
+        heading = next(find_by_type("heading", visitor.result), None)
+        if heading is not None:
+            title = to_text(heading)
+        else: 
+            title = None
+
         with open(json_xref_dst, "w") as f:
             json.dump(
                 {
@@ -64,7 +70,7 @@ class MySTBuilder(Builder):
                     "slug": slug,
                     "location": f"/{docname}",
                     "dependencies": [],
-                    "frontmatter": {"title": title, "content_includes_title": True},
+                    "frontmatter": {"title": title, "content_includes_title": title is not None},
                     "mdast": visitor.result,
                     "references": {"cite": {"order": [], "data": {}}},
                 },
@@ -92,7 +98,7 @@ class MySTBuilder(Builder):
                 yield {
                     "identifier": node["identifier"],
                     "kind": self._xref_kind_for_node(node),
-                    "data": f"/{slug}.json",
+                    "data": self._get_xref_path(doc),
                     "url": f"/{slug}",
                 }
 

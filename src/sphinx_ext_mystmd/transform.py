@@ -84,10 +84,11 @@ class MySTNodeVisitor(Visitor):
     def inherit_node_info(self, node, docutils_node):
         ids = docutils_node.get("ids", [])
         if ids:
+            longest_id = max(ids, key=len)
             if len(ids) > 1:
-                print(f"Warning, found multiple ids: {ids}, using {ids[-1]}")
+                print(f"Warning, found multiple ids: {ids}, using {longest_id}")
 
-            identifier, label, _ = normalize_label(ids[-1])
+            identifier, label, _ = normalize_label(longest_id)
             node["identifier"] = identifier
             node["label"] = label
 
@@ -113,9 +114,16 @@ class MySTNodeVisitor(Visitor):
     def visit_meta(self, node):
         logger.warning("`meta` node not implemented")
 
+    def visit_container(self, node):
+        return self.enter_myst_node({"type": "container", "children": []})
+
     def visit_comment(self, node):
         with self.enter_myst_node(
-            {"type": "comment", "value": str(node.children[0])}, node  # TODO: totext
+            {
+                "type": "comment",
+                "value": str(node.children[0]) if node.children else "",
+            },
+            node,  # TODO: totext
         ):
             yield SkipChildren
 
@@ -154,6 +162,20 @@ class MySTNodeVisitor(Visitor):
             {"type": "span", "class": "problematic", "children": []}, node
         )
 
+    def visit_tgroup(self, node):
+        logger.warning("Encountered `tgroup` node, ignoring in favour of children")
+        return
+
+    def visit_colspec(self, node):
+        logger.warning("`colspec` node not implemented")
+        return SkipChildren
+
+    def visit_math(self, node):
+        return self.enter_myst_node({"type": "inlineMath", "children": []}, node)
+
+    def visit_math_block(self, node):
+        return self.enter_myst_node({"type": "math", "children": []}, node)
+
     def visit_target(self, node):
         logger.warning("`target` node not implemented")
 
@@ -170,6 +192,14 @@ class MySTNodeVisitor(Visitor):
         if parent_type == "section":
             with self.enter_myst_node(
                 {"type": "heading", "depth": self._heading_depth, "children": []}, node
+            ):
+                yield
+        elif parent_type == "table":
+            with self.enter_myst_node({"type": "caption", "children": []}, node):
+                yield
+        elif parent_type == "compact_paragraph":
+            with self.enter_myst_node(
+                {"type": "span", "class": "sphinx-caption-text", "children": []}, node
             ):
                 yield
         elif parent_type in {"topic", "admonition", "sidebar"}:
@@ -205,8 +235,8 @@ class MySTNodeVisitor(Visitor):
     def visit_rubric(self, node):
         with self.enter_myst_node({"type": "paragraph", "children": []}, node):
             with self.enter_myst_node({"type": "strong", "children": []}):
-              self.push_myst_node({"type": "text", "value": str(node.children[0])})
-              yield SkipChildren
+                self.push_myst_node({"type": "text", "value": str(node.children[0])})
+                yield SkipChildren
 
     def visit_transition(self, node):
         return self.enter_myst_node({"type": "thematicBreak"})
@@ -245,7 +275,7 @@ class MySTNodeVisitor(Visitor):
 
     def visit_footnote_reference(self, node):
         return self.enter_myst_node(
-            {"type": "link", "url": f"#", "children": []}, node
+            {"type": "link", "url": "#", "children": []}, node
         )  # TODO: fix url
 
     def visit_index(self, node):
@@ -254,7 +284,7 @@ class MySTNodeVisitor(Visitor):
 
     def visit_title_reference(self, node):
         return self.enter_myst_node(  # TODO fix url
-            {"type": "link", "url": f"#", "children": []}, node
+            {"type": "link", "url": "#", "children": []}, node
         )
 
     def visit_sidebar(self, node):
@@ -321,13 +351,20 @@ class MySTNodeVisitor(Visitor):
     def visit_table(self, node):
         return self.enter_myst_node({"type": "table", "children": []}, node)
 
-    def visit_tgroup(self, node):
-        logger.warning("`tgroup node not implemented")
+    def visit_tbody(self, node):
+        logger.warning("Encountered `tbody` node, ignoring in favour of children")
+
+    def visit_autosummary_table(self, node):
+        logger.warning(
+            "Encountered `autosummary_table` node, ignoring in favor of children"
+        )
+
+    def visit_autosummary_toc(self, node):
+        logger.warning("Encountered `autosummary_table` node, skipping")
         return SkipChildren
 
-    def visit_tbody(self, node):
-        logger.warning("`tbody node not implemented")
-        return SkipChildren
+    def visit_glossary(self, node):
+        return self.enter_myst_node({"type": "glossary", "children": []}, node)
 
     def visit_row(self, node):
         return self.enter_myst_node({"type": "tableRow", "children": []}, node)
@@ -379,10 +416,6 @@ class MySTNodeVisitor(Visitor):
             for row_child in child["children"]:
                 row_child["header"] = True
 
-    def visit_colspec(self, node):
-        logger.warning("`colspec` node not implemented")
-        return SkipChildren
-
     def visit_tabular_col_spec(self, node):
         logger.warning("`tabular_colspec` node not implemented")
         return SkipChildren
@@ -399,6 +432,35 @@ class MySTNodeVisitor(Visitor):
 
     def visit_admonition(self, node):
         return self.enter_myst_node({"type": "admonition", "children": []}, node)
+
+    def visit_versionmodified(self, node):
+        logger.info(repr(node))
+        return self.enter_myst_node(
+            {
+                "type": "admonition",
+                "children": [
+                    {
+                        "type": "admonitionTitle",
+                        "children": [{"type": "text", "value": "Version Modified"}],
+                    }
+                ],
+            },
+            node,
+        )
+
+    def visit_productionlist(self, node):
+        return self.enter_myst_node(
+            {
+                "type": "admonition",
+                "children": [
+                    {
+                        "type": "admonitionTitle",
+                        "children": [{"type": "text", "value": "Version Modified"}],
+                    }
+                ],
+            },
+            node,
+        )
 
     def visit_substitution_definition(self, node):
         # TODO: cache this?
@@ -503,7 +565,6 @@ class MySTNodeVisitor(Visitor):
             node,
         )
 
-
     def visit_desc_annotation(self, node):
         return self.enter_myst_node(
             {"type": "emphasis", "children": [], "class": "sphinx-desc-annotation"},
@@ -553,6 +614,7 @@ for name in (
     "note",
     "tip",
     "warning",
+    "seealso",
 ):
 
     def visitor(self, node, name=name):
