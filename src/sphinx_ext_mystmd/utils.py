@@ -2,6 +2,23 @@ import re
 import collections
 
 
+def title_to_name(title):
+    return input_to_name(title.replace("&", "¶and¶"), re.compile(r"[a-z0-9-]"), "-")[:50]
+
+
+def input_to_name(input_, allowed, join):
+    escaped = ''.join([c if allowed.search(c) else '¶' for c in f"¶{input_}".lower()])
+    unique = re.sub(r"¶+", "¶", escaped)
+    name = re.sub("¶", join, unique[1:])
+    if join:
+        name = re.sub(f"{join}+", join, name)
+    if name[0] == join:
+        name = name[1:]
+    if name[-1] == join:
+        name = name[:-1]
+    return name
+
+
 def normalize_label(
     label,
 ):

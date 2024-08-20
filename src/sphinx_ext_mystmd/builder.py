@@ -7,7 +7,7 @@ import pathlib
 import hashlib
 
 from .transform import MySTNodeVisitor
-from .utils import to_text, find_by_type, breadth_first_walk
+from .utils import to_text, find_by_type, breadth_first_walk, title_to_name
 
 
 logger = logging.getLogger(__name__)
@@ -17,7 +17,8 @@ class MySTBuilder(Builder):
     name = "myst"
 
     def _slugify(self, path):
-        return path.replace("/", "-")
+        name = os.path.basename(path)
+        return title_to_name(name)
 
     def _get_xref_path(self, doc_name):
         target_stem = self._slugify(doc_name)

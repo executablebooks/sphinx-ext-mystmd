@@ -5,7 +5,7 @@ import inspect
 from sphinx.util import logging
 
 
-from .utils import normalize_label
+from .utils import normalize_label   
 
 
 logger = logging.getLogger(__name__)
