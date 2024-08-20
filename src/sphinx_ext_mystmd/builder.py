@@ -20,9 +20,61 @@ class MySTBuilder(Builder):
         name = os.path.basename(path)
         return title_to_name(name)
 
+    def _get_output_path(self, doc_name):
+        target_stem = self._slugify(doc_name)
+        return os.path.join(self.outdir, f"{target_stem}.myst.json")
+
+    def prepare_writing(self, docnames):
+        logger.info(f"About to write {docnames}")
+
+    def get_outdated_docs(self):
+        for docname in self.env.found_docs:
+            if docname not in self.env.all_docs:
+                yield docname
+                continue
+            target_path = self._get_output_path(docname)
+            try:
+                targetmtime = os.path.getmtime(target_path)
+            except Exception:
+                targetmtime = 0
+            try:
+                srcmtime = os.path.getmtime(self.env.doc2path(docname))
+                if srcmtime > targetmtime:
+                    yield docname
+            except OSError:
+                # source doesn't exist anymore
+                pass
+
+    def write_doc(self, docname, doctree):
+        visitor = MySTNodeVisitor(doctree)
+        doctree.walkabout(visitor)
+        output_path = pathlib.Path(self._get_output_path(docname))
+        output_path.parent.mkdir(exist_ok=True)
+
+        with open(output_path, "w") as f:
+            json.dump(
+                {
+                    "kind": "Article",
+                    "mdast": visitor.result,
+                },
+                f,
+                indent=2,
+            )
+
+    def get_target_uri(self, docname, typ=None):
+        return self._slugify(docname)
+
+
+class MySTXRefBuilder(Builder):
+    name = "myst-xref"
+
+    def _slugify(self, path):
+        name = os.path.basename(path)
+        return title_to_name(name)
+
     def _get_xref_path(self, doc_name):
         target_stem = self._slugify(doc_name)
-        return os.path.join(self.outdir, "content", f"{target_stem}.myst.json")
+        return os.path.join(self.outdir, "content", f"{target_stem}.json")
 
     def prepare_writing(self, docnames):
         logger.info(f"About to write {docnames}")
@@ -60,7 +112,7 @@ class MySTBuilder(Builder):
         heading = next(find_by_type("heading", visitor.result), None)
         if heading is not None:
             title = to_text(heading)
-        else: 
+        else:
             title = None
 
         with open(json_xref_dst, "w") as f:
@@ -71,7 +123,10 @@ class MySTBuilder(Builder):
                     "slug": slug,
                     "location": f"/{docname}",
                     "dependencies": [],
-                    "frontmatter": {"title": title, "content_includes_title": title is not None},
+                    "frontmatter": {
+                        "title": title,
+                        "content_includes_title": title is not None,
+                    },
                     "mdast": visitor.result,
                     "references": {"cite": {"order": [], "data": {}}},
                 },
@@ -80,8 +135,8 @@ class MySTBuilder(Builder):
             )
 
     def _xref_kind_for_node(self, node):
-        if node['type'] == 'container':
-            return node.get('kind', 'figure')
+        if node["type"] == "container":
+            return node.get("kind", "figure")
         if "kind" in node:
             return f"{node['type']}:{node['kind']}"
         return node["type"]
