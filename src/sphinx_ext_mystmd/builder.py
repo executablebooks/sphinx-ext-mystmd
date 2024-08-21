@@ -5,6 +5,7 @@ import json
 import os.path
 import pathlib
 import hashlib
+import urllib.parse
 
 from .transform import MySTNodeVisitor
 from .utils import to_text, find_by_type, breadth_first_walk, title_to_name
@@ -13,7 +14,23 @@ from .utils import to_text, find_by_type, breadth_first_walk, title_to_name
 logger = logging.getLogger(__name__)
 
 
-class MySTBuilder(Builder):
+class MySTBuilderMixin:
+
+    def transform_internal_links(self, node):
+        docnames = set(self.env.found_docs)
+        for link in find_by_type("link", node):
+            parsed_uri = urllib.parse.urlparse(link["url"])
+            if parsed_uri.scheme or not parsed_uri.path:
+                continue
+            if parsed_uri.path in docnames:
+                # Add JSON suffix to path
+                new_path = f"{parsed_uri.path}.myst.json"
+                link["url"] = urllib.parse.urlunparse(
+                    parsed_uri._replace(path=new_path)
+                )
+
+
+class MySTBuilder(MySTBuilderMixin, Builder):
     name = "myst"
 
     def _slugify(self, path):
@@ -48,6 +65,10 @@ class MySTBuilder(Builder):
     def write_doc(self, docname, doctree):
         visitor = MySTNodeVisitor(doctree)
         doctree.walkabout(visitor)
+        mdast = visitor.result
+
+        self.transform_internal_links(mdast)
+
         output_path = pathlib.Path(self._get_output_path(docname))
         output_path.parent.mkdir(exist_ok=True)
 
@@ -55,7 +76,7 @@ class MySTBuilder(Builder):
             json.dump(
                 {
                     "kind": "Article",
-                    "mdast": visitor.result,
+                    "mdast": mdast,
                 },
                 f,
                 indent=2,
@@ -65,7 +86,7 @@ class MySTBuilder(Builder):
         return self._slugify(docname)
 
 
-class MySTXRefBuilder(Builder):
+class MySTXRefBuilder(MySTBuilderMixin, Builder):
     name = "myst-xref"
 
     def _slugify(self, path):
@@ -100,6 +121,10 @@ class MySTXRefBuilder(Builder):
     def write_doc(self, docname, doctree):
         visitor = MySTNodeVisitor(doctree)
         doctree.walkabout(visitor)
+        mdast = visitor.result
+
+        self.transform_internal_links(mdast)
+
         slug = self._slugify(docname)
         xref_path = self._get_xref_path(docname)
 
