@@ -23,7 +23,7 @@ project:
     - file: index.md
     - title: Sphinx Build
       children:
-        - pattern: <BUILDDIR>/content/**.myst.json
+        - pattern: <BUILDDIR>/**.myst.json
 
 ```
 

@@ -31,7 +31,7 @@ version: 1
 project:
   toc:
     - file: index.md
-    - pattern: myst-asts/content/**.myst.json
+    - pattern: myst-asts/**.myst.json
 site:
   template: book-theme
 :::
