@@ -19,7 +19,7 @@ extensions = [
 ## Build the Sphinx Project
 
 ```shell
-sphinx-build -b myst sphinx myst-build
+sphinx-build -b myst sphinx myst-asts
 ```
 
 ## Configure the MyST Project
@@ -31,7 +31,7 @@ version: 1
 project:
   toc:
     - file: index.md
-    - pattern: myst-build/content/**.myst.json
+    - pattern: myst-asts/content/**.myst.json
 site:
   template: book-theme
 :::

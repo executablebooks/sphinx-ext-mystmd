@@ -14,13 +14,13 @@ The Sphinx `conf.py` for your project should include `sphinx-ext-mystmd`. If you
 extensions = [
     "sphinx_ext_mystmd"
 ]
-html_extra_path = ["./myst-build"]
+html_extra_path = ["./myst-xrefs"]
 :::
 
 ## Build the MyST Metadata
 
 ```shell
-sphinx-build -b myst . ./myst-build
+sphinx-build -b myst-xref . ./myst-xrefs
 ```
 
 ## Build the HTML Deployment
