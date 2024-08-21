@@ -5,6 +5,7 @@ import inspect
 from sphinx.util import logging
 
 
+from .utils import normalize_label   
 
 
 logger = logging.getLogger(__name__)
@@ -87,7 +88,9 @@ class MySTNodeVisitor(Visitor):
             if len(ids) > 1:
                 print(f"Warning, found multiple ids: {ids}, using {longest_id}")
 
-            node["label"] = longest_id
+            identifier, label, _ = normalize_label(longest_id)
+            node["identifier"] = identifier
+            node["label"] = label
 
     def push_myst_node(self, node, docutils_node=None):
         self.parent_result["children"].append(node)
@@ -144,7 +147,7 @@ class MySTNodeVisitor(Visitor):
             )
         elif node.get("refuri"):
             return self.enter_myst_node(
-                {"type": "link", "url": node['refuri'], "children": []}, node
+                {"type": "link", "url": node["refuri"], "children": []}, node
             )
         else:
             raise
